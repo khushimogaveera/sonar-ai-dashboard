@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-depth-900 text-slate-200 font-sans antialiased;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 20% -10%, rgba(51, 193, 214, 0.08), transparent),
+      radial-gradient(ellipse 60% 40% at 100% 0%, rgba(51, 193, 214, 0.05), transparent);
+    background-attachment: fixed;
+  }
+  ::selection {
+    background: rgba(95, 216, 232, 0.3);
+  }
+  * {
+    scrollbar-color: #1c3350 transparent;
+    scrollbar-width: thin;
+  }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: #1c3350; border-radius: 8px; }
+}
+
+@layer components {
+  .panel {
+    @apply bg-depth-800/70 border border-sonar-500/10 rounded-xl backdrop-blur-sm;
+  }
+  .demo-badge {
+    @apply inline-flex items-center gap-1.5 text-[11px] font-medium tracking-wide text-signal-amber bg-signal-amber/10 border border-signal-amber/25 rounded-full px-2.5 py-0.5;
+  }
+  .nav-link {
+    @apply flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm text-slate-400 hover:text-slate-100 hover:bg-depth-700/60 transition-colors;
+  }
+  .nav-link.active {
+    @apply text-sonar-400 bg-sonar-500/10 border border-sonar-500/20;
+  }
+}
+
+.leaflet-container {
+  background: #0a1420 !important;
+  font-family: inherit;
+}
