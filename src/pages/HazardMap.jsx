@@ -16,20 +16,37 @@ export default function HazardMap() {
   const { detections } = useDetections()
   const [statusFilter, setStatusFilter] = useState('All')
 
-  const filtered = useMemo(
-    () => (statusFilter === 'All' ? detections : detections.filter((d) => d.status === statusFilter)),
-    [detections, statusFilter]
-  )
+  const filtered = useMemo(() => {
+    const statusFiltered =
+      statusFilter === 'All'
+        ? detections
+        : detections.filter((d) => d.status === statusFilter)
+
+    return statusFiltered.filter(
+      (d) =>
+        Number.isFinite(Number(d.latitude)) &&
+        Number.isFinite(Number(d.longitude))
+    )
+  }, [detections, statusFilter])
 
   const center = filtered.length
-    ? [filtered[0].latitude, filtered[0].longitude]
+    ? [Number(filtered[0].latitude), Number(filtered[0].longitude)]
     : [18.9213, 72.8347]
 
   return (
-    <Layout title="Hazard Map" subtitle="Geotagged detections across survey areas">
+    <Layout
+      title="Hazard Map"
+      subtitle="Geotagged detections across survey areas"
+    >
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          {['All', 'Verified', 'Pending Review', 'Needs Investigation', 'Rejected'].map((s) => (
+        <div className="flex items-center gap-2 flex-wrap">
+          {[
+            'All',
+            'Verified',
+            'Pending Review',
+            'Needs Investigation',
+            'Rejected',
+          ].map((s) => (
             <button
               key={s}
               onClick={() => setStatusFilter(s)}
@@ -43,20 +60,30 @@ export default function HazardMap() {
             </button>
           ))}
         </div>
+
         <DemoBadge label="DEMO COORDINATES" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5">
         <div className="panel overflow-hidden h-[560px]">
-          <MapContainer center={center} zoom={13} scrollWheelZoom style={{ height: '100%', width: '100%' }}>
+          <MapContainer
+            center={center}
+            zoom={13}
+            scrollWheelZoom
+            style={{ height: '100%', width: '100%' }}
+          >
             <TileLayer
-              attribution='&copy; OpenStreetMap contributors'
+              attribution="&copy; OpenStreetMap contributors"
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
+
             {filtered.map((d) => (
               <CircleMarker
                 key={d.id}
-                center={[d.latitude, d.longitude]}
+                center={[
+                  Number(d.latitude),
+                  Number(d.longitude),
+                ]}
                 radius={9}
                 pathOptions={{
                   color: STATUS_COLOR[d.status] || '#33c1d6',
@@ -66,18 +93,51 @@ export default function HazardMap() {
                 }}
               >
                 <Popup>
-                  <div style={{ fontFamily: 'inherit', minWidth: 160 }}>
-                    <p style={{ fontWeight: 600, marginBottom: 4 }}>{d.classification.toUpperCase()}</p>
-                    <p style={{ fontSize: 12, margin: '2px 0' }}>Confidence: {(d.confidence * 100).toFixed(1)}%</p>
+                  <div
+                    style={{
+                      fontFamily: 'inherit',
+                      minWidth: 160,
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontWeight: 600,
+                        marginBottom: 4,
+                      }}
+                    >
+                      {d.classification?.toUpperCase() || 'DETECTION'}
+                    </p>
+
+                    <p style={{ fontSize: 12, margin: '2px 0' }}>
+                      Confidence:{' '}
+                      {((Number(d.confidence) || 0) * 100).toFixed(1)}%
+                    </p>
+
                     <p style={{ fontSize: 12, margin: '2px 0' }}>
                       {d.latitude}° N, {d.longitude}° E
                     </p>
+
                     <p style={{ fontSize: 12, margin: '2px 0' }}>
-                      Size: {d.width} × {d.height} m
+                      Size: {d.width} × {d.height}
                     </p>
-                    <p style={{ fontSize: 12, margin: '2px 0' }}>Mission: {d.survey}</p>
-                    <p style={{ fontSize: 12, margin: '2px 0' }}>Status: {d.status}</p>
-                    <p style={{ fontSize: 10, marginTop: 6, color: '#e8a33d' }}>DEMO COORDINATES</p>
+
+                    <p style={{ fontSize: 12, margin: '2px 0' }}>
+                      Mission: {d.survey || 'Prototype Sonar Survey'}
+                    </p>
+
+                    <p style={{ fontSize: 12, margin: '2px 0' }}>
+                      Status: {d.status || 'Pending Review'}
+                    </p>
+
+                    <p
+                      style={{
+                        fontSize: 10,
+                        marginTop: 6,
+                        color: '#e8a33d',
+                      }}
+                    >
+                      DEMO COORDINATES
+                    </p>
                   </div>
                 </Popup>
               </CircleMarker>
@@ -87,11 +147,20 @@ export default function HazardMap() {
 
         <div className="space-y-4">
           <div className="panel p-4">
-            <h3 className="text-xs font-semibold tracking-wide text-slate-400 mb-3">LEGEND</h3>
+            <h3 className="text-xs font-semibold tracking-wide text-slate-400 mb-3">
+              LEGEND
+            </h3>
+
             <ul className="space-y-2 text-xs text-slate-300">
               {Object.entries(STATUS_COLOR).map(([status, color]) => (
-                <li key={status} className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: color }} />
+                <li
+                  key={status}
+                  className="flex items-center gap-2"
+                >
+                  <span
+                    className="w-2.5 h-2.5 rounded-full"
+                    style={{ background: color }}
+                  />
                   {status}
                 </li>
               ))}
@@ -100,15 +169,27 @@ export default function HazardMap() {
 
           <div className="panel p-4 max-h-[380px] overflow-y-auto">
             <h3 className="text-xs font-semibold tracking-wide text-slate-400 mb-3">
-              {filtered.length} DETECTION{filtered.length === 1 ? '' : 'S'}
+              {filtered.length} DETECTION
+              {filtered.length === 1 ? '' : 'S'}
             </h3>
+
             <ul className="space-y-2.5">
               {filtered.map((d) => (
-                <li key={d.id} className="flex items-center justify-between text-xs">
+                <li
+                  key={d.id}
+                  className="flex items-center justify-between text-xs"
+                >
                   <div>
-                    <p className="text-slate-200 font-mono">{d.id}</p>
-                    <p className="text-slate-500">{(d.confidence * 100).toFixed(1)}% confidence</p>
+                    <p className="text-slate-200 font-mono">
+                      {d.id}
+                    </p>
+
+                    <p className="text-slate-500">
+                      {((Number(d.confidence) || 0) * 100).toFixed(1)}%
+                      confidence
+                    </p>
                   </div>
+
                   <StatusPill status={d.status} />
                 </li>
               ))}
