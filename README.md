@@ -1,9 +1,13 @@
-# Sonar AI — Man-Made Debris Detection (Frontend Prototype)
+   # Sonar AI — Man-Made Debris Detection
 
 A React + Vite + Tailwind dashboard for a Side Scan Sonar (SSS) man-made
-debris detection system. **This is a frontend-only prototype.** No real
-AI model or backend is connected — detections, metadata, missions, and
-analytics are all demo data, clearly labeled throughout the UI.
+debris detection system. The inference backend runs on Hugging Face Spaces
+(ZeroGPU) and is called directly from the frontend.
+
+## Live Demo
+
+🔗 [App](https://YOUR-VERCEL-APP.vercel.app)
+🤖 [Backend (HF Space)](https://huggingface.co/spaces/khushimogaveera/shipwreck-sonar-ai)
 
 ## Run it
 
@@ -12,44 +16,28 @@ npm install
 npm run dev
 ```
 
-## What's real vs. mock
+The backend is hosted on Hugging Face Spaces
+and runs on ZeroGPU. For local inference development, clone the space and run
+the inference script directly.
 
-- **Real:** the sonar image viewer only ever shows an image you actually
-  upload. Nothing about the image itself is generated or faked.
-- **Mock:** the detection result, confidence score, coordinates,
-  dimensions, mission metadata, analytics, and review-queue seed data are
-  all placeholders, labeled with `DEMO` badges everywhere they appear.
-
-## Swapping in your real model later
-
-Every page calls exactly two functions from `src/services/detectionService.js`:
-
-```js
+How detection works
+Every page calls exactly two functions from src/services/detectionService.js:
+```
 detectAnomaly(imageFile, onStage)   // → detection result
 getMetadata(detectionId)            // → geotag / dimensions / survey info
 ```
+detectAnomaly sends the uploaded image to the HF Spaces inference endpoint
+via fetch and returns bounding boxes, confidence scores, and detection
+metadata. getMetadata fetches survey/geotag info for a given detection ID.
 
-To connect your real model:
+To point at a different inference server, update the base URL in
+detectionService.js — no component or page needs to change.
 
-1. Write a real implementation (e.g. a `fetch` to your inference
-   endpoint) that returns the same shape as `mockDetectionService.js`'s
-   `runMockDetection`.
-2. In `detectionService.js`, swap the import/call from
-   `mockDetectionService` to your real module. Do the same for
-   `metadataService.js` if you have real GPS/header parsing.
-3. No component or page needs to change — they only ever talk to
-   `detectionService.js`.
-
-## Structure
-
+Structure
 ```
 src/
   components/   shared UI (sidebar, top bar, cards, badges…)
   pages/        one file per route (Overview, Sonar Analysis, Hazard Map…)
-  services/     detectionService.js (the abstraction) + the two mocks
-  data/         demoData.js — all placeholder detections/missions/analytics
+  services/     detectionService.js — API layer for the inference backend
   state/        DetectionsContext.jsx — shared, localStorage-backed state
 ```
-
-Delete `src/data/demoData.js` and the two mock services once your real
-model and metadata sources are wired up.
